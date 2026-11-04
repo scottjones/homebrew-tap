@@ -1,6 +1,6 @@
 cask "omarchy" do
-  version "2.3.14"
-  sha256 "ef95e2703aa5881ab4c6c01891038f80bedf2e199376460a30b68670195c3a67"
+  version "2.3.15"
+  sha256 "a6ee0cc214fff9f9d194772a5b4492c055c8f74d8572c1183874449d445f3d11"
 
   url "https://github.com/omacom/omarchy-mac-installer/releases/download/v#{version}/Omarchy-Mac-Installer-#{version}.dmg",
       verified: "github.com/omacom/omarchy-mac-installer/"
