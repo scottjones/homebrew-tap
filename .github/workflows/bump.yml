@@ -1,0 +1,37 @@
+# Opens a PR updating Casks/omarchy.rb when omarchy-mac-installer publishes a
+# release. Triggered by repository_dispatch from that repo's release workflow
+# (event type "installer-released", payload {"version": "2.3.15"}), or by hand.
+name: Bump omarchy cask
+on:
+  repository_dispatch:
+    types: [installer-released]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Installer version, e.g. 2.3.15
+        required: true
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update version and checksum
+        env:
+          VERSION: ${{ github.event.client_payload.version || inputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "bad version: $VERSION"; exit 1; }
+          sum=$(gh release download "v$VERSION" -R omacom/omarchy-mac-installer \
+                  -p "Omarchy-Mac-Installer-$VERSION.dmg.sha256" -O - | awk '{print $1}')
+          [[ $sum =~ ^[0-9a-f]{64}$ ]] || { echo "no checksum for $VERSION"; exit 1; }
+          sed -i -E "s/^  version \".*\"/  version \"$VERSION\"/; s/^  sha256 \".*\"/  sha256 \"$sum\"/" Casks/omarchy.rb
+          git diff --quiet && { echo "already at $VERSION"; exit 0; }
+          git switch -c "bump-omarchy-$VERSION"
+          git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com \
+            commit -am "omarchy $VERSION"
+          git push -u origin "bump-omarchy-$VERSION"
+          gh pr create --title "omarchy $VERSION" --body "Installer release v$VERSION."
