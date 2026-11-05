@@ -18,9 +18,12 @@ cask "omarchy" do
   app "Omarchy Installer.app"
 
   # Open the installer right away so the next step is on screen. This also runs
-  # on `brew upgrade`, which reinstalls the app.
-  postflight_steps do
-    run "/usr/bin/open", args: ["-a", "{{appdir}}/Omarchy Installer.app"]
+  # on `brew upgrade`, which reinstalls the app. Kept as postflight on purpose:
+  # postflight_steps runs sandboxed and can't launch apps through LaunchServices
+  # (tested 2026-11-05). Homebrew warns about postflight but runs it until
+  # 2027-12-11; revisit before then.
+  postflight do
+    system_command "/usr/bin/open", args: ["-a", "#{appdir}/Omarchy Installer.app"]
   end
 
   # The app installs a privileged helper with SMJobBless when it first asks
