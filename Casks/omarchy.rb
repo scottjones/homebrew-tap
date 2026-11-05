@@ -18,6 +18,12 @@ cask "omarchy" do
 
   app "Omarchy Installer.app"
 
+  # Open the installer right away so the next step is on screen. This also runs
+  # on `brew upgrade`, which reinstalls the app.
+  postflight do
+    system_command "/usr/bin/open", args: ["-a", "#{appdir}/Omarchy Installer.app"]
+  end
+
   # The app installs a privileged helper with SMJobBless when it first asks
   # for an administrator password. Remove it with the app.
   uninstall launchctl: "org.omarchy.installer.helper",
